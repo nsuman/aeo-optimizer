@@ -35,6 +35,16 @@ app.include_router(optimize_router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+@app.on_event("startup")
+async def _warm_routes() -> None:
+    # Avoid first-request races against Render health checks on included routers.
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    client.get("/health")
+    client.get("/v1/sample")
+
+
 @app.get("/health")
 async def health() -> dict[str, object]:
     settings = get_settings()
