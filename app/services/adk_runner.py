@@ -36,6 +36,7 @@ class AdkOptimizeService:
                 "add GOOGLE_API_KEY, then redeploy."
             )
         os.environ["GOOGLE_API_KEY"] = key
+        os.environ.setdefault("GEMINI_API_KEY", key)
         return key
 
     async def optimize(self, products: list[ProductIn]) -> OptimizeResponse:
@@ -54,10 +55,7 @@ class AdkOptimizeService:
             state={"products": product_payloads},
         )
 
-        root_agent = build_root_agent(
-            self.settings.adk_model,
-            parallel=self.settings.aeo_parallel,
-        )
+        root_agent = build_root_agent(self.settings.adk_model)
         runner = Runner(
             agent=root_agent,
             app_name=app_name,

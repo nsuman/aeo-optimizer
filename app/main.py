@@ -42,7 +42,6 @@ async def health() -> dict[str, object]:
         "status": "ok",
         "google_api_key_configured": bool(settings.resolved_google_api_key()),
         "model": settings.adk_model,
-        "parallel": settings.aeo_parallel,
     }
 
 

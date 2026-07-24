@@ -1,10 +1,10 @@
-"""Orchestrator that fans out one product AEO agent per catalog item."""
+"""Orchestrator that runs one product AEO agent per catalog item (sequential)."""
 
 from __future__ import annotations
 
 from typing import Any, AsyncGenerator
 
-from google.adk.agents import BaseAgent, ParallelAgent
+from google.adk.agents import BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.events import Event, EventActions
 from google.genai import types
@@ -48,13 +48,10 @@ def _coerce_diff(raw: Any, product_id: str) -> dict[str, Any]:
 
 
 class AeoOrchestratorAgent(BaseAgent):
-    """Read products from session state, run product agents, aggregate diffs."""
+    """Read products from session state, run product agents sequentially, aggregate."""
 
     model: str = Field(default="gemini-2.5-flash")
     """Gemini model id passed through to each product agent."""
-
-    parallel: bool = Field(default=False)
-    """Run product agents concurrently when True (higher RAM)."""
 
     @override
     async def _run_async_impl(
@@ -102,15 +99,11 @@ class AeoOrchestratorAgent(BaseAgent):
             )
             return
 
-        if self.parallel:
-            fan_out = ParallelAgent(name="product_fan_out", sub_agents=sub_agents)
-            async for event in fan_out.run_async(ctx):
+        # Sequential only — ParallelAgent wraps failures in opaque TaskGroup errors
+        # and OOMs easily on Render free instances.
+        for agent in sub_agents:
+            async for event in agent.run_async(ctx):
                 yield event
-        else:
-            # Sequential keeps memory low on free Render instances.
-            for agent in sub_agents:
-                async for event in agent.run_async(ctx):
-                    yield event
 
         diffs: list[dict[str, Any]] = []
         for output_key, product_id in output_keys:
@@ -133,6 +126,7 @@ class AeoOrchestratorAgent(BaseAgent):
 
 
 def build_root_agent(model: str, *, parallel: bool = False) -> AeoOrchestratorAgent:
+    del parallel  # kept for call-site compatibility; parallel fan-out removed
     return AeoOrchestratorAgent(
         name="aeo_orchestrator",
         description=(
@@ -140,5 +134,4 @@ def build_root_agent(model: str, *, parallel: bool = False) -> AeoOrchestratorAg
             "and aggregates structured diffs."
         ),
         model=model,
-        parallel=parallel,
     )
