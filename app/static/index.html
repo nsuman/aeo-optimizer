@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AEO Optimizer</title>
+<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <h1>AEO Optimizer</h1>
+    </div>
+    <div class="topbar-meta">
+      <span id="health" class="pill pill-idle">checking...</span>
+      <span class="muted">Shopify catalog &rarr; agentic engine diffs</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Catalog JSON</h2>
+        <div class="actions">
+          <button id="loadSample" class="btn btn-ghost" type="button">Load sample</button>
+          <button id="format" class="btn btn-ghost" type="button">Format</button>
+        </div>
+      </div>
+      <textarea id="catalog" spellcheck="false" placeholder='{ "products": { "nodes": [ ... ] } }'></textarea>
+      <div class="panel-foot">
+        <span id="productCount" class="muted">0 products</span>
+        <button id="run" class="btn btn-primary" type="button">Run optimization</button>
+      </div>
+    </section>
+
+    <div class="column">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Pipeline &amp; scores</h2>
+          <span id="summary" class="muted"></span>
+        </div>
+        <div id="visuals" class="visuals">
+          <p class="empty">Run the agents to visualize the fan-out and score lift.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>AEO diffs</h2>
+        </div>
+        <div id="results" class="results">
+          <p class="empty">Load the sample catalog and run the agents to see per-product diffs.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "products": {
+    "nodes": [
+      {
+        "id": "gid://shopify/Product/1001",
+        "title": "Amazing Soft Tee!!!",
+        "description": "The best shirt ever. Super cool. Buy now!",
+        "descriptionHtml": "<p>The best shirt ever. Super cool. Buy now!</p>",
+        "vendor": "Acme Apparel",
+        "productType": "T-Shirts",
+        "tags": ["summer", "casual"],
+        "seo": {
+          "title": "Amazing Soft Tee",
+          "description": "Best shirt ever"
+        },
+        "variants": {
+          "nodes": [
+            {
+              "id": "gid://shopify/ProductVariant/2001",
+              "title": "Default Title",
+              "sku": "",
+              "price": "29.00",
+              "availableForSale": true
+            }
+          ]
+        }
+      },
+      {
+        "id": "gid://shopify/Product/1002",
+        "title": "Trail Runner Pro",
+        "description": "Lightweight trail running shoe with grippy outsole for rocky paths. Best for intermediate runners who train 3–5 times per week on mixed terrain. Not intended for road racing or wide feet.",
+        "descriptionHtml": "<p>Lightweight trail running shoe with grippy outsole for rocky paths. Best for intermediate runners who train 3–5 times per week on mixed terrain. Not intended for road racing or wide feet.</p>",
+        "vendor": "PeakForge",
+        "productType": "Shoes",
+        "tags": ["running", "trail", "footwear"],
+        "seo": {
+          "title": "Trail Runner Pro | PeakForge",
+          "description": "Lightweight trail shoe for rocky paths. For intermediate runners; not for road racing."
+        },
+        "variants": {
+          "nodes": [
+            {
+              "id": "gid://shopify/ProductVariant/2002",
+              "title": "US 9 / Orange",
+              "sku": "PF-TRP-9-ORG",
+              "price": "128.00",
+              "availableForSale": true
+            },
+            {
+              "id": "gid://shopify/ProductVariant/2003",
+              "title": "US 10 / Orange",
+              "sku": "PF-TRP-10-ORG",
+              "price": "128.00",
+              "availableForSale": false
+            }
+          ]
+        }
+      },
+      {
+        "id": "gid://shopify/Product/1003",
+        "title": "Ceramic Pour-Over Set",
+        "description": "A nice coffee thing for your kitchen.",
+        "vendor": "Brew & Clay",
+        "productType": "Kitchen",
+        "tags": ["coffee"],
+        "seo": {
+          "title": null,
+          "description": null
+        },
+        "variants": {
+          "nodes": [
+            {
+              "id": "gid://shopify/ProductVariant/2004",
+              "title": "Matte White",
+              "sku": "BC-PO-MW",
+              "price": "64.00",
+              "availableForSale": true
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
