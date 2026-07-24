@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,6 +10,14 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.optimize import router as optimize_router
+
+# Slim Docker images often lack MIME mappings, so browsers reject CSS/JS as text/plain.
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("image/svg+xml", ".svg")
+mimetypes.add_type("image/png", ".png")
+mimetypes.add_type("image/webp", ".webp")
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -32,4 +41,4 @@ async def health() -> dict[str, str]:
 
 @app.get("/", include_in_schema=False)
 async def index() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
