@@ -48,10 +48,13 @@ def _coerce_diff(raw: Any, product_id: str) -> dict[str, Any]:
 
 
 class AeoOrchestratorAgent(BaseAgent):
-    """Read products from session state, run product agents in parallel, aggregate."""
+    """Read products from session state, run product agents, aggregate diffs."""
 
     model: str = Field(default="gemini-2.5-flash")
     """Gemini model id passed through to each product agent."""
+
+    parallel: bool = Field(default=False)
+    """Run product agents concurrently when True (higher RAM)."""
 
     @override
     async def _run_async_impl(
@@ -99,9 +102,15 @@ class AeoOrchestratorAgent(BaseAgent):
             )
             return
 
-        fan_out = ParallelAgent(name="product_fan_out", sub_agents=sub_agents)
-        async for event in fan_out.run_async(ctx):
-            yield event
+        if self.parallel:
+            fan_out = ParallelAgent(name="product_fan_out", sub_agents=sub_agents)
+            async for event in fan_out.run_async(ctx):
+                yield event
+        else:
+            # Sequential keeps memory low on free Render instances.
+            for agent in sub_agents:
+                async for event in agent.run_async(ctx):
+                    yield event
 
         diffs: list[dict[str, Any]] = []
         for output_key, product_id in output_keys:
@@ -123,7 +132,7 @@ class AeoOrchestratorAgent(BaseAgent):
         )
 
 
-def build_root_agent(model: str) -> AeoOrchestratorAgent:
+def build_root_agent(model: str, *, parallel: bool = False) -> AeoOrchestratorAgent:
     return AeoOrchestratorAgent(
         name="aeo_orchestrator",
         description=(
@@ -131,4 +140,5 @@ def build_root_agent(model: str) -> AeoOrchestratorAgent:
             "and aggregates structured diffs."
         ),
         model=model,
+        parallel=parallel,
     )

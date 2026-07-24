@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,6 +16,11 @@ class Settings(BaseSettings):
     max_products: int = 20
     # Must match the directory that contains the root agent module (app/agents).
     app_name: str = "agents"
+    # Parallel fan-out uses more RAM; keep off on Render free instances.
+    aeo_parallel: bool = False
+
+    def resolved_google_api_key(self) -> str | None:
+        return self.google_api_key or os.environ.get("GOOGLE_API_KEY") or None
 
 
 @lru_cache

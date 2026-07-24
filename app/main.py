@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.optimize import router as optimize_router
+from app.config import get_settings
 
 # Slim Docker images often lack MIME mappings, so browsers reject CSS/JS as text/plain.
 mimetypes.add_type("text/css", ".css")
@@ -35,8 +36,14 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health() -> dict[str, object]:
+    settings = get_settings()
+    return {
+        "status": "ok",
+        "google_api_key_configured": bool(settings.resolved_google_api_key()),
+        "model": settings.adk_model,
+        "parallel": settings.aeo_parallel,
+    }
 
 
 @app.get("/", include_in_schema=False)

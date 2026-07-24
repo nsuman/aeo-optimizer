@@ -11,11 +11,19 @@ from fastapi import APIRouter, HTTPException
 from app.config import get_settings
 from app.models.aeo import OptimizeResponse
 from app.models.shopify import OptimizeRequest
-from app.services.adk_runner import AdkOptimizeService
+from app.services.adk_runner import AdkOptimizeService, MissingApiKeyError
 
 router = APIRouter(prefix="/v1", tags=["optimize"])
 
 SAMPLE_CATALOG = Path(__file__).resolve().parents[2] / "samples" / "shopify_products.json"
+
+
+def _format_exception(exc: BaseException) -> str:
+    if isinstance(exc, BaseExceptionGroup):
+        parts = [_format_exception(child) for child in exc.exceptions]
+        return "; ".join(parts)
+    message = str(exc).strip()
+    return message or type(exc).__name__
 
 
 @router.get("/sample")
@@ -45,8 +53,10 @@ async def optimize_catalog(body: OptimizeRequest) -> OptimizeResponse:
     service = AdkOptimizeService(settings)
     try:
         return await service.optimize(products)
+    except MissingApiKeyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001 — surface ADK/runtime errors to client
         raise HTTPException(
             status_code=502,
-            detail=f"ADK optimization failed: {exc}",
+            detail=f"ADK optimization failed: {_format_exception(exc)}",
         ) from exc

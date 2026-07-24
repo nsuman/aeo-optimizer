@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import uuid
 from typing import Any
 
@@ -15,6 +16,10 @@ from app.models.aeo import AeoProductDiff, OptimizeResponse
 from app.models.shopify import ProductIn
 
 
+class MissingApiKeyError(RuntimeError):
+    """Raised when Gemini credentials are not configured."""
+
+
 def _product_to_state_dict(product: ProductIn) -> dict[str, Any]:
     return product.model_dump(by_alias=True, exclude_none=False)
 
@@ -23,12 +28,18 @@ class AdkOptimizeService:
     def __init__(self, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
 
-    async def optimize(self, products: list[ProductIn]) -> OptimizeResponse:
-        if self.settings.google_api_key:
-            # google-genai / ADK pick up GOOGLE_API_KEY from the environment.
-            import os
+    def _ensure_api_key(self) -> str:
+        key = self.settings.resolved_google_api_key()
+        if not key:
+            raise MissingApiKeyError(
+                "GOOGLE_API_KEY is not set. In Render: Dashboard → Environment → "
+                "add GOOGLE_API_KEY, then redeploy."
+            )
+        os.environ["GOOGLE_API_KEY"] = key
+        return key
 
-            os.environ.setdefault("GOOGLE_API_KEY", self.settings.google_api_key)
+    async def optimize(self, products: list[ProductIn]) -> OptimizeResponse:
+        self._ensure_api_key()
 
         app_name = self.settings.app_name
         user_id = "api"
@@ -43,7 +54,10 @@ class AdkOptimizeService:
             state={"products": product_payloads},
         )
 
-        root_agent = build_root_agent(self.settings.adk_model)
+        root_agent = build_root_agent(
+            self.settings.adk_model,
+            parallel=self.settings.aeo_parallel,
+        )
         runner = Runner(
             agent=root_agent,
             app_name=app_name,

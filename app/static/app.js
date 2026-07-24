@@ -258,7 +258,9 @@ async function run() {
 
     if (!res.ok) {
       visualsEl.innerHTML = '<p class="empty">Run failed.</p>';
-      resultsEl.innerHTML = `<div class="card error">${escapeHtml(data.detail ?? res.statusText)}</div>`;
+      resultsEl.innerHTML = `<div class="card error">${escapeHtml(
+        formatDetail(data.detail) || res.statusText
+      )}</div>`;
       return;
     }
 
@@ -280,13 +282,33 @@ async function run() {
   }
 }
 
+function formatDetail(detail) {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg || JSON.stringify(item)).join("; ");
+  }
+  if (detail && typeof detail === "object") return JSON.stringify(detail);
+  return "Request failed";
+}
+
 async function checkHealth() {
   const pill = $("health");
   try {
     const res = await fetch("/health");
-    const ok = res.ok && (await res.json()).status === "ok";
-    pill.textContent = ok ? "backend online" : "backend error";
-    pill.className = `pill ${ok ? "pill-ok" : "pill-bad"}`;
+    const data = await res.json();
+    const ok = res.ok && data.status === "ok";
+    if (!ok) {
+      pill.textContent = "backend error";
+      pill.className = "pill pill-bad";
+      return;
+    }
+    if (!data.google_api_key_configured) {
+      pill.textContent = "missing GOOGLE_API_KEY";
+      pill.className = "pill pill-bad";
+      return;
+    }
+    pill.textContent = "backend online";
+    pill.className = "pill pill-ok";
   } catch {
     pill.textContent = "backend offline";
     pill.className = "pill pill-bad";
